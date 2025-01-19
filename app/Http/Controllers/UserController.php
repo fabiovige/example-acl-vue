@@ -6,9 +6,17 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use App\Traits\HasPermissionCheck;
 
 class UserController extends Controller
 {
+    use HasPermissionCheck;
+
+    public function __construct()
+    {
+        $this->setupPermissionMiddleware('users');
+    }
+
     public function index()
     {
         $users = User::with('roles')
@@ -18,6 +26,11 @@ class UserController extends Controller
         return Inertia::render('Users/Index', [
             'title' => 'Usuários',
             'users' => $users,
+            'can' => [
+                'users_create' => auth()->user()->can('users create'),
+                'users_edit' => auth()->user()->can('users edit'),
+                'users_delete' => auth()->user()->can('users delete'),
+            ],
             'flash' => [
                 'message' => session('message'),
                 'error' => session('error'),

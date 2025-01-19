@@ -5,15 +5,29 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
+use App\Traits\HasPermissionCheck;
 
 class PermissionController extends Controller
 {
+    use HasPermissionCheck;
+
+    public function __construct()
+    {
+        $this->setupPermissionMiddleware('permissions');
+    }
+
     public function index()
     {
         $permissions = Permission::orderBy('created_at', 'desc')->paginate(10);
+
         return Inertia::render('Permissions/Index', [
             'title' => 'Permissions',
             'permissions' => $permissions,
+            'can' => [
+                'permissions_create' => auth()->user()->can('permissions create'),
+                'permissions_edit' => auth()->user()->can('permissions edit'),
+                'permissions_delete' => auth()->user()->can('permissions delete'),
+            ],
             'flash' => [
                 'message' => session('message'),
                 'error' => session('error'),

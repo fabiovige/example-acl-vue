@@ -6,9 +6,17 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Traits\HasPermissionCheck;
 
 class RoleController extends Controller
 {
+    use HasPermissionCheck;
+
+    public function __construct()
+    {
+        $this->setupPermissionMiddleware('roles');
+    }
+
     public function index()
     {
         $roles = Role::with('permissions')
@@ -18,6 +26,11 @@ class RoleController extends Controller
         return Inertia::render('Roles/Index', [
             'title' => 'Roles',
             'roles' => $roles,
+            'can' => [
+                'roles_create' => auth()->user()->can('roles create'),
+                'roles_edit' => auth()->user()->can('roles edit'),
+                'roles_delete' => auth()->user()->can('roles delete'),
+            ],
             'flash' => [
                 'message' => session('message'),
                 'error' => session('error'),
