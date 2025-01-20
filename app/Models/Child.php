@@ -26,17 +26,24 @@ class Child extends Model
         'father_phone',
         'mother_name',
         'mother_phone',
-        'user_id'
+        'parent_id',
+        'employee_id'
     ];
 
     protected $casts = [
         'birth_date' => 'date'
     ];
 
-    // Relacionamento com o usuário (pai/responsável)
+    // Relacionamento com o pai/responsável
     public function parent()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    // Relacionamento com o funcionário
+    public function employee()
+    {
+        return $this->belongsTo(User::class, 'employee_id');
     }
 
     public function getFormattedBirthDateAttribute()
@@ -44,5 +51,10 @@ class Child extends Model
         return $this->birth_date->format('d/m/Y');
     }
 
-    protected $appends = ['formatted_birth_date'];
+    public function getParentInfoAttribute()
+    {
+        return $this->parent ? $this->parent->name : 'Não definido';
+    }
+
+    protected $appends = ['formatted_birth_date', 'parent_info'];
 }

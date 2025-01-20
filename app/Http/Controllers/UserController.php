@@ -152,18 +152,31 @@ class UserController extends Controller
 
     public function search(Request $request)
     {
-        // Adiciona verificação de autenticação se necessário
         if (!auth()->check()) {
             return response()->json([], 401);
         }
 
-        $users = User::role('Pais')
-            ->where(function($query) use ($request) {
-                $query->where('name', 'like', "%{$request->search}%")
-                      ->orWhere('email', 'like', "%{$request->search}%");
-            })
-            ->take(5)
-            ->get(['id', 'name', 'email']); // Seleciona apenas os campos necessários
+        $query = User::query();
+
+        // Se foi especificado um papel, filtra por ele
+        if ($request->role) {
+            $query->role($request->role);
+        }
+
+        // Se tiver termo de busca, aplica o filtro
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('email', 'like', "%{$request->search}%");
+            });
+        }
+
+        // Limita o número de resultados (padrão: 5)
+        $limit = $request->limit ?? 5;
+
+        $users = $query->take($limit)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
         return response()->json($users);
     }
