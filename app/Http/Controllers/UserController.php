@@ -17,8 +17,22 @@ class UserController extends Controller
         $this->setupPermissionMiddleware('users');
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        // Se for uma requisição de busca (autocomplete)
+        if ($request->has('search')) {
+            $users = User::role('Pais')
+                ->where('name', 'like', "%{$request->search}%")
+                ->orWhere('email', 'like', "%{$request->search}%")
+                ->take(5)
+                ->get();
+
+            return Inertia::render('Users/Index', [
+                'users' => $users,
+            ]);
+        }
+
+        // Listagem normal
         $users = User::with('roles')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -134,5 +148,23 @@ class UserController extends Controller
             return redirect()->back()
                 ->with('error', 'Erro ao excluir usuário. Por favor, tente novamente.');
         }
+    }
+
+    public function search(Request $request)
+    {
+        // Adiciona verificação de autenticação se necessário
+        if (!auth()->check()) {
+            return response()->json([], 401);
+        }
+
+        $users = User::role('Pais')
+            ->where(function($query) use ($request) {
+                $query->where('name', 'like', "%{$request->search}%")
+                      ->orWhere('email', 'like', "%{$request->search}%");
+            })
+            ->take(5)
+            ->get(['id', 'name', 'email']); // Seleciona apenas os campos necessários
+
+        return response()->json($users);
     }
 }

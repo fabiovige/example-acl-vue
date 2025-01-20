@@ -43,4 +43,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get the children for the user.
+     */
+    public function children()
+    {
+        return $this->hasMany(Child::class);
+    }
 }
