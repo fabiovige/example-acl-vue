@@ -30,7 +30,7 @@ class ChildRequest extends FormRequest
             'mother_name' => ['nullable', 'string', 'max:100'],
             'mother_phone' => ['nullable', 'string', 'max:15'],
             'parent_id' => ['nullable', 'exists:users,id'],
-            'employee_id' => ['nullable', 'exists:users,id'],
+            'employee_id' => ['nullable', 'exists:users,id']
         ];
     }
 

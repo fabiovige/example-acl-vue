@@ -113,7 +113,7 @@ const columns = [
                         <div class="text-sm">
                             <p v-if="item.father_name">Pai: {{ item.father_name }}</p>
                             <p v-if="item.mother_name">Mãe: {{ item.mother_name }}</p>
-                            <p class="text-gray-500">{{ item.parent.name }}</p>
+                            <p v-if="item.parent" class="text-gray-500">{{ item.parent.name }}</p>
                         </div>
                     </template>
 

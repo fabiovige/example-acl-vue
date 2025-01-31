@@ -28,10 +28,10 @@ class DatabaseSeeder extends Seeder
 
         // Grupos de permissões por módulo
         $permissionGroups = [
-            'users' => ['view', 'create', 'edit', 'delete'],
+            'users' => ['view', 'create', 'edit', 'delete', 'view all'],
             'roles' => ['view', 'create', 'edit', 'delete'],
             'permissions' => ['view', 'create', 'edit', 'delete'],
-            'children' => ['view', 'create', 'edit', 'delete'],
+            'children' => ['view', 'create', 'edit', 'delete', 'view all'],
             // Novos módulos podem ser adicionados aqui
             // 'products' => ['view', 'create', 'edit', 'delete'],
             // 'orders' => ['view', 'create', 'edit', 'delete'],
@@ -52,11 +52,42 @@ class DatabaseSeeder extends Seeder
         // Create Roles
         $roleSuperAdmin = Role::create(['name' => 'Super Admin']);
         $roleAdmin = Role::create(['name' => 'Admin']);
-        $rolePais = Role::create(['name' => 'Pais']);
+        $roleEditor = Role::create(['name' => 'Editor']);
+        $roleRevisor = Role::create(['name' => 'Revisor']);
+        $roleGerente = Role::create(['name' => 'Gerente']);
 
-        // Give all permissions to Admin role
+        // Permissões do Admin (acesso total)
         $roleAdmin->givePermissionTo($permissions);
-        $rolePais->givePermissionTo(['children view']); // Pais só podem ver suas crianças
+
+        // Permissões do Editor
+        $roleEditor->givePermissionTo([
+            'children view',
+            'children create',
+            'children edit',
+            'children view all',
+            'users view'
+        ]);
+
+        // Permissões do Revisor
+        $roleRevisor->givePermissionTo([
+            'children view',
+            'children edit',
+            'children view all',
+            'users view'
+        ]);
+
+        // Permissões do Gerente
+        $roleGerente->givePermissionTo([
+            'children view',
+            'children create',
+            'children edit',
+            'children delete',
+            'children view all',
+            'users view',
+            'users view all',
+            'users create',
+            'users edit'
+        ]);
 
         // Create Users
         $superAdmin = User::create([
@@ -71,18 +102,32 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        $pais = User::create([
-            'name' => 'Pai Exemplo',
-            'email' => 'pai@example.com',
+        $editor = User::create([
+            'name' => 'Editor',
+            'email' => 'editor@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $revisor = User::create([
+            'name' => 'Revisor',
+            'email' => 'revisor@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $gerente = User::create([
+            'name' => 'Gerente',
+            'email' => 'gerente@example.com',
             'password' => bcrypt('password'),
         ]);
 
         // Assign Roles to Users
         $superAdmin->assignRole('Super Admin');
         $admin->assignRole('Admin');
-        $pais->assignRole('Pais');
+        $editor->assignRole('Editor');
+        $revisor->assignRole('Revisor');
+        $gerente->assignRole('Gerente');
 
-        // Após criar os usuários...
+        // Criar criança exemplo vinculada ao Editor
         Child::create([
             'name' => 'Criança Exemplo',
             'birth_date' => now()->subYears(5),
@@ -94,9 +139,9 @@ class DatabaseSeeder extends Seeder
             'city' => 'São Paulo',
             'state' => 'SP',
             'zipcode' => '01001-000',
-            'father_name' => 'Pai Exemplo',
+            'father_name' => 'Editor Exemplo',
             'father_phone' => '(11) 99999-9999',
-            'user_id' => $pais->id
+            'parent_id' => $editor->id
         ]);
     }
 }

@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
                         'children create' => $request->user()->can('children create'),
                         'children edit' => $request->user()->can('children edit'),
                         'children delete' => $request->user()->can('children delete'),
+                        'children view all' => $request->user()->can('children view all'),
                     ],
                 ] : null,
             ],

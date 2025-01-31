@@ -21,15 +21,17 @@ class UserController extends Controller
     {
         // Se for uma requisição de busca (autocomplete)
         if ($request->has('search')) {
-            $users = User::role('Pais')
-                ->where('name', 'like', "%{$request->search}%")
-                ->orWhere('email', 'like', "%{$request->search}%")
-                ->take(5)
-                ->get();
+            $users = User::where(function($query) use ($request) {
+                $query->where('name', 'like', "%{$request->search}%")
+                      ->orWhere('email', 'like', "%{$request->search}%");
+            })
+            ->when($request->role, function($query, $role) {
+                $query->role($role);
+            })
+            ->take(5)
+            ->get();
 
-            return Inertia::render('Users/Index', [
-                'users' => $users,
-            ]);
+            return response()->json($users);
         }
 
         // Listagem normal

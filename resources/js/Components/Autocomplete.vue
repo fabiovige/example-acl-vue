@@ -18,6 +18,10 @@ const props = defineProps({
     url: {
         type: String,
         required: true
+    },
+    required: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -44,19 +48,21 @@ onMounted(() => {
 });
 
 const handleChange = (event) => {
-    emit('update:modelValue', event.target.value);
+    // Converte string vazia para null
+    const value = event.target.value === '' ? null : event.target.value;
+    emit('update:modelValue', value);
 };
 </script>
 
 <template>
     <div class="relative">
         <select
-            :value="modelValue"
+            :value="modelValue ?? ''"
             @change="handleChange"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             :required="required"
         >
-            <option value="">{{ placeholder }}</option>
+            <option value="">Selecione...</option>
             <option v-for="item in items"
                     :key="item.id"
                     :value="item.id"

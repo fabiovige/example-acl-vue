@@ -20,13 +20,37 @@ class ChildController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $query = $user->hasRole('Pais')
-            ? Child::where('parent_id', $user->id)
-            : Child::query();
 
-        $children = $query->with('parent')
+        // Usuário só vê as crianças que tem permissão
+        $query = Child::query();
+
+        // Se não pode ver todas as crianças, filtra apenas as próprias
+        if (!$user->can('children view all')) {
+            $query->where('parent_id', $user->id);
+        }
+
+        $children = $query->with(['parent' => function($query) {
+                $query->select('id', 'name', 'email');
+            }])
+            ->select([
+                'id',
+                'name',
+                'birth_date',
+                'gender',
+                'parent_id',
+                'father_name',
+                'mother_name',
+                'created_at'
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+        dd($children);
+        // Debug para verificar a query
+        \Log::info('Children Query', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+            'results' => $children->items()
+        ]);
 
         return Inertia::render('Children/Index', [
             'title' => 'Crianças',
@@ -35,6 +59,7 @@ class ChildController extends Controller
                 'children_create' => $user->can('children create'),
                 'children_edit' => $user->can('children edit'),
                 'children_delete' => $user->can('children delete'),
+                'children_view_all' => $user->can('children view all'),
             ],
             'flash' => [
                 'message' => session('message'),
@@ -45,17 +70,7 @@ class ChildController extends Controller
 
     public function create()
     {
-        if (auth()->user()->hasRole('Pais')) {
-            return Inertia::render('Children/Create', [
-                'parent_id' => auth()->id(),
-                'employees' => User::role('Funcionario')->get()
-            ]);
-        }
-
-        return Inertia::render('Children/Create', [
-            'parents' => User::role('Pais')->get(),
-            'employees' => User::role('Funcionario')->get()
-        ]);
+        return Inertia::render('Children/Create');
     }
 
     public function store(ChildRequest $request)
@@ -63,15 +78,19 @@ class ChildController extends Controller
         try {
             $validated = $request->validated();
 
-            if (auth()->user()->hasRole('Pais')) {
+            // Se não pode ver todas as crianças, força parent_id
+            if (!auth()->user()->can('children view all')) {
                 $validated['parent_id'] = auth()->id();
             }
 
             Child::create($validated);
-            return redirect()->route('children.index')
+
+            return redirect()
+                ->route('children.index')
                 ->with('message', 'Criança cadastrada com sucesso.');
+
         } catch (\Exception $e) {
-            return redirect()->back()
+            return back()
                 ->withErrors(['error' => 'Ocorreu um erro interno. Por favor, tente novamente.'])
                 ->withInput();
         }
@@ -79,20 +98,20 @@ class ChildController extends Controller
 
     public function edit(Child $child)
     {
-        if (auth()->user()->hasRole('Pais') && $child->parent_id !== auth()->id()) {
+        // Verifica se usuário pode editar esta criança específica
+        if (!auth()->user()->can('children view all') && $child->parent_id !== auth()->id()) {
             abort(403);
         }
 
         return Inertia::render('Children/Edit', [
-            'child' => $child,
-            'parents' => User::role('Pais')->get(),
-            'employees' => User::role('Funcionario')->get()
+            'child' => $child
         ]);
     }
 
     public function update(ChildRequest $request, Child $child)
     {
-        if (auth()->user()->hasRole('Pais') && $child->parent_id !== auth()->id()) {
+        // Verifica se usuário pode editar esta criança específica
+        if (!auth()->user()->can('children view all') && $child->parent_id !== auth()->id()) {
             abort(403);
         }
 
@@ -109,7 +128,8 @@ class ChildController extends Controller
 
     public function destroy(Child $child)
     {
-        if (auth()->user()->hasRole('Pais') && $child->parent_id !== auth()->id()) {
+        // Verifica se usuário pode excluir esta criança específica
+        if (!auth()->user()->can('children view all') && $child->parent_id !== auth()->id()) {
             abort(403);
         }
 
