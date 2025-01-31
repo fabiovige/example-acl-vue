@@ -37,12 +37,27 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'can' => [
-                        // ... outras permissões ...
-                        'children view' => $request->user()->can('children view'),
-                        'children create' => $request->user()->can('children create'),
-                        'children edit' => $request->user()->can('children edit'),
-                        'children delete' => $request->user()->can('children delete'),
-                        'children view all' => $request->user()->can('children view all'),
+                        'users_view' => $request->user()->can('users view'),
+                        'users_create' => $request->user()->can('users create'),
+                        'users_edit' => $request->user()->can('users edit'),
+                        'users_delete' => $request->user()->can('users delete'),
+                        'users_view_all' => $request->user()->can('users view all'),
+
+                        'roles_view' => $request->user()->can('roles view'),
+                        'roles_create' => $request->user()->can('roles create'),
+                        'roles_edit' => $request->user()->can('roles edit'),
+                        'roles_delete' => $request->user()->can('roles delete'),
+
+                        'permissions_view' => $request->user()->can('permissions view'),
+                        'permissions_create' => $request->user()->can('permissions create'),
+                        'permissions_edit' => $request->user()->can('permissions edit'),
+                        'permissions_delete' => $request->user()->can('permissions delete'),
+
+                        'children_view' => $request->user()->can('children view'),
+                        'children_create' => $request->user()->can('children create'),
+                        'children_edit' => $request->user()->can('children edit'),
+                        'children_delete' => $request->user()->can('children delete'),
+                        'children_view_all' => $request->user()->can('children view all'),
                     ],
                 ] : null,
             ],

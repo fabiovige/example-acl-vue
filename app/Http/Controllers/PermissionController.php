@@ -18,20 +18,28 @@ class PermissionController extends Controller
 
     public function index()
     {
-        $permissions = Permission::orderBy('created_at', 'desc')->paginate(10);
+        $query = Permission::query()
+            ->when(request()->input('search'), function($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->orderBy('name');
+
+        $permissions = $query->paginate(15)
+            ->withQueryString()
+            ->through(fn($permission) => [
+                'id' => $permission->id,
+                'name' => $permission->name,
+                'created_at' => $permission->created_at,
+            ]);
 
         return Inertia::render('Permissions/Index', [
-            'title' => 'Permissions',
             'permissions' => $permissions,
+            'filters' => request()->only(['search']),
             'can' => [
-                'permissions_create' => auth()->user()->can('permissions create'),
-                'permissions_edit' => auth()->user()->can('permissions edit'),
-                'permissions_delete' => auth()->user()->can('permissions delete'),
-            ],
-            'flash' => [
-                'message' => session('message'),
-                'error' => session('error'),
-            ],
+                'create' => auth()->user()->can('permissions create'),
+                'edit' => auth()->user()->can('permissions edit'),
+                'delete' => auth()->user()->can('permissions delete'),
+            ]
         ]);
     }
 

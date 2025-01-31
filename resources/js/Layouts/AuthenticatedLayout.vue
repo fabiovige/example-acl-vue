@@ -52,11 +52,11 @@ const showingNavigationDropdown = ref(false);
                                 </NavLink>
                             </div>
 
-                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink
-                                    v-if="$page.props.auth.user.can['children view']"
                                     :href="route('children.index')"
                                     :active="route().current('children.*')"
+                                    v-if="$page.props.auth.user.can.children_view"
                                 >
                                     Crianças
                                 </NavLink>
@@ -164,9 +164,9 @@ const showingNavigationDropdown = ref(false);
 
                         <div class="pt-2 pb-3 space-y-1">
                             <ResponsiveNavLink
-                                v-if="$page.props.auth.user.can['children view']"
                                 :href="route('children.index')"
                                 :active="route().current('children.*')"
+                                v-if="$page.props.auth.user.can.children_view"
                             >
                                 Crianças
                             </ResponsiveNavLink>
